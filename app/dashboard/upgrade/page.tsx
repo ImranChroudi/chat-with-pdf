@@ -1,11 +1,9 @@
-function DashboardPage() {
+function UpgradePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-3xl font-bold">My Documents</h1>
-
       
     </div>
   );
 }
 
-export default DashboardPage;
+export default UpgradePage;

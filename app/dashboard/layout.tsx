@@ -1,4 +1,4 @@
-import Header from "@/components/ui/Header";
+import Header from "@/components/Header";
 import { ClerkProvider } from "@clerk/nextjs";
 
 function dashboardLayout({ children }: { children: React.ReactNode }) {
