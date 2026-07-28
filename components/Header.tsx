@@ -38,7 +38,7 @@ function Header() {
             variant="ghost"
             className="h-10 rounded-md px-4 text-sm font-medium text-[#4A4D57] transition-colors hover:bg-transparent hover:text-[#14161F] sm:h-11 sm:px-5"
           >
-            <Link href="/dashboard/my-documents">My documents</Link>
+            <Link href="/dashboard/documents">My documents</Link>
           </Button>
 
           <Button
