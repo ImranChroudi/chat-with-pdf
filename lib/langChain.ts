@@ -218,7 +218,5 @@ export async function generateLangChainCompletion(
   console.log("--- defining a prompt template ---")
   const historyAwarePromot = ChatPromptTemplate.fromMessages([
     chatHistory,
-
-    
   ])
 }
