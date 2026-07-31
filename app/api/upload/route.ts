@@ -30,11 +30,13 @@ export async function POST(req: Request) {
             folder: `chat-with-pdf/${userId}/${fileId}`,
             resource_type: "auto",
             public_id: fileToId,
+            access_mode: "public",
+            
           },
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
-          }
+          } 
         )
         .end(buffer);
 

@@ -48,16 +48,17 @@ function FileUploader() {
   const { progress, status, fileId, handleUpload } = useUpload();
   const router = useRouter();
 
-  useEffect(() => {
-    if (status === StatusText.UPLOADED && fileId) {
-      router.push(`/chat/${fileId}`);
-    }
-  }, [status, fileId]);
+  // useEffect(() => {
+  //   if (status === StatusText.UPLOADED && fileId) {
+  //     router.push(`/chat/${fileId}`);
+  //   }
+  // }, [status, fileId]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     console.log("Dropped file:", file);
     if (file) {
+      console.log("Uploading file:", file);
       await handleUpload(file);
     }
   }, []);

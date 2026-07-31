@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/firebase";
+import { generateEmbedding } from "@/actions/generateEmbading";
 
 export enum StatusText {
   UPLOADING = "Uploading",
@@ -17,23 +18,36 @@ export enum StatusText {
 
 export type Status = StatusText[keyof StatusText];
 
-function useUpload() {
+ function useUpload() {
   const [progress, setProgress] = useState(0);
   const [fileId, setFileId] = useState("");
   const [status, setStatus] = useState("");
+ const router = useRouter();
 
-  const { user } = useUser();
-  const router = useRouter();
+
+  const { user , isLoaded} =  useUser();
+  console.log("user", user);
 
   const handleUploaded = async (file: File) => {
-    if (!file || !user) return;
+    console.log("handle uploaded", file);
+
+    setTimeout(() => {
+      console.log("Timeout");
+    }, 3000);
+
+    
+
+    if (user === null || user === undefined) {
+      console.log("No file or user");
+      return;
+    };
 
     const fileIdUploadTo = uuidv4();
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("fileId", fileIdUploadTo);
-    formData.append("userId", user.id);
+    formData.append("userId", user?.id);
 
     console.log(fileIdUploadTo);
 
@@ -54,9 +68,10 @@ function useUpload() {
         setStatus(StatusText.UPLOADED);
       }
 
-      const documentUrl = res.data.url;
+      const documentUrl = res.data.secure_url;
+      console.log("document Url" , documentUrl);
 
-      await setDoc(doc(db, "users", user.id, "files", fileIdUploadTo), {
+      await setDoc(doc(db, "users", user?.id, "files", fileIdUploadTo), {
         name: file.name,
         url: documentUrl,
         type: file.type,
@@ -66,10 +81,14 @@ function useUpload() {
     } catch (err) {
       console.log(err);
       setStatus(StatusText.SAVING);
+      return;
     }
 
     setStatus(StatusText.GENERTATING);
     // Generate Ai Embading
+
+    console.log("Generating embedding");
+    await generateEmbedding(fileIdUploadTo);
 
     setFileId(fileIdUploadTo);
   };
