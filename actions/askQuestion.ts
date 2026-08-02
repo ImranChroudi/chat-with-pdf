@@ -1,8 +1,12 @@
 import { adminDb } from "@/firebaseAdmin";
+import { generateLangChainCompletion } from "@/lib/langChain";
 import { auth } from "@clerk/nextjs/server";
 
 export async function askQuestion(id : string, question: string) {
-    const {userId} = auth.portect()
+    const {userId} = await auth.protect();
+
+    console.log("question", question);
+    
 
     const chatRef = adminDb
     .collection("users")
@@ -32,11 +36,8 @@ export async function askQuestion(id : string, question: string) {
         createdAt : new Date()
     }; 
 
+    await chatRef.add(aiMessage);
     
-
-
-
-    
-
+    return {success : true , message : null};
 
 }

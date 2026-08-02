@@ -9,6 +9,7 @@ async function ChatFilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
   const { userId } = await auth.protect();
 
   const ref = await adminDb

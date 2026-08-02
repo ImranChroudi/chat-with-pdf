@@ -1,16 +1,37 @@
 "use client";
-import { useChat } from "@ai-sdk/react";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState, useTransition } from "react";
 import { BotIcon, Loader2Icon, SendIcon, UserIcon } from "lucide-react";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { useUser } from "@clerk/nextjs";
 import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase";
+import { askQuestion } from "@/actions/askQuestion";
+
+// ---- Types -------------------------------------------------------------
+
+type ChatRole = "human" | "ai";
+
+interface ChatMessagePart {
+  type: "text";
+  text: string;
+}
+
+interface ChatMessage {
+  role: ChatRole;
+  message : string;
+  createdAt: Date;
+  id?: string;
+}
+
+// ---- Component -------------------------------------------------------------
 
 function ChatComponent({ id }: { id: string }) {
   const { user } = useUser();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
+  const [isPending , setTransition] = useTransition();
+
+
   const [snapshot, setSnapshot, error] = useCollection(
     user &&
       query(
@@ -19,11 +40,105 @@ function ChatComponent({ id }: { id: string }) {
       ),
   );
 
-  const { messages, sendMessage  } = useChat();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  useEffect(() => {
+    if(!snapshot) return;
+   
+    const lastMessage = messages.pop();
+    if(lastMessage && lastMessage.role === "ai" && lastMessage.message === "Thinking..."){
+      return 
+    }
+
+    const newMessages = snapshot.docs.map((doc)=>{
+      const {role , message , createdAt} = doc.data();
+
+      return {
+        id : doc.id ,
+        role ,
+        message ,
+        createdAt: createdAt.toDate()
+      }
+    })
+
+    setMessages(newMessages);
+
+  }, [snapshot]);
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(()=>{
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  } , [messages])
+  // TODO: you fill in the actual sending/fetching logic
+
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    const q = input;
+    setInput("");
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "human",
+        message: q,
+        createdAt: new Date(),
+      },
+      {
+        role: "ai",
+        message: "Thinking...",
+        createdAt: new Date(),
+      },
+    ]);
+
+    startTransition(async () => {
+
+      const {success , message} = await fetch(`/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, question: q }),
+      }).then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        return res;
+      }).catch((err) => {
+        console.error(err);
+        return { success: false, message: "Something went wrong" };
+      });
+
+      console.log("success" , success , message);
+
+
+      
+
+      if(!success){
+        setMessages((prev) => 
+             prev.slice(0 , prev.length -1).concat([
+              {
+                role : "ai",
+                message : message ?? "Something went wrong",
+                createdAt : new Date()
+              }])
+        );
+        return;
+      }
+
+      setMessages((prev) => {
+        return prev.slice(0 , prev.length -1).concat({
+            role : "ai",
+            message : message ?? "Something went wrong",
+            createdAt : new Date()
+        });
+      });
+    });
+  }
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-white">
@@ -39,11 +154,11 @@ function ChatComponent({ id }: { id: string }) {
           </div>
         )}
 
-        {messages.map((message) => {
-          const isUser = message.role === "user";
+        {messages.map((message , index) => {
+          const isUser = message.role === "human";
           return (
             <div
-              key={message.id}
+              key={message.id ?? index}
               className={`flex items-end gap-2 ${
                 isUser ? "justify-end" : "justify-start"
               }`}
@@ -61,12 +176,7 @@ function ChatComponent({ id }: { id: string }) {
                     : "bg-gray-100 text-gray-900 rounded-bl-sm"
                 }`}
               >
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case "text":
-                      return <div key={`${message.id}-${i}`}>{part.text}</div>;
-                  }
-                })}
+                {message.message}
               </div>
 
               {isUser && (
@@ -78,28 +188,11 @@ function ChatComponent({ id }: { id: string }) {
           );
         })}
 
-        {false && (
-          <div className="flex items-end gap-2 justify-start">
-            <div className="h-7 w-7 shrink-0 rounded-full bg-indigo-600 flex items-center justify-center">
-              <BotIcon className="h-4 w-4 text-white" />
-            </div>
-            <div className="rounded-2xl rounded-bl-sm px-4 py-3 bg-gray-100 flex gap-1 items-center">
-              <span className="h-1.5 w-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-gray-400 animate-bounce" />
-            </div>
-          </div>
-        )}
-
         <div ref={bottomRef} />
       </div>
 
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendMessage({ text: input });
-          // setInput(''); // Remove this line as input state is not managed here
-        }}
+        onSubmit={handleSubmit}
         className="border-t bg-white/80 backdrop-blur-sm p-3 sm:p-4 flex gap-2 items-center"
       >
         <input
@@ -113,7 +206,13 @@ function ChatComponent({ id }: { id: string }) {
           disabled={!input?.trim()}
           className="h-10 w-10 shrink-0 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full disabled:opacity-40 disabled:hover:bg-indigo-600 transition shadow-sm"
         >
-          <SendIcon className="h-4 w-4" />
+          {
+            isPending ? (
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <SendIcon className="h-4 w-4" />
+            )
+          }
         </button>
       </form>
     </div>

@@ -4,29 +4,24 @@ import {
   convertToModelMessages,
   createUIMessageStreamResponse,
   toUIMessageStream,
+  generateText,
 } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { db } from '@/firebase';
-import { auth } from '@clerk/nextjs';
+import { auth, useUser } from '@clerk/nextjs';
+import { askQuestion } from '@/actions/askQuestion';
 
-export async function POST(req: Request) {
+export async function POST(req : any) {
   
-  //const { user } = await auth.protect();
-  const { messages }: { messages: UIMessage[] } = await req.json();
-  
-  console.log(messages[0].parts[0]);
+  const { id , question } = await req.json();
+    console.log("message" , question , id);
 
-//   await db.collection("users").doc(user.id).collection("files").doc(fileId).collection("chat").add({
-//     role: message.role,
-//     content: message.content
-//   })
+  const { success , message} = await askQuestion(id , question);
 
-  const result = streamText({
-    model: openai('gpt-5.1'),
-    messages: await convertToModelMessages(messages),
-  });
 
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
-  });
+  console.log("message" , message);
+  return {
+    success,
+    message
+  }
 }

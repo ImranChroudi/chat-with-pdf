@@ -7,9 +7,13 @@ import { Document } from "@langchain/core/documents";
 import { extractText, getDocumentProxy } from "unpdf";
 import pineconeClient from "@/lib/pineconeClient";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
-import { ChatPromptValue } from "@langchain/core/prompt_values";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { createHistoryAwareRetriever } from "@langchain/classic/chains/history_aware_retriever";
+import { createStuffDocumentsChain } from "@langchain/classic/chains/combine_documents";
+import { createRetrievalChain } from "@langchain/classic/chains/retrieval";
+import { MessagesPlaceholder } from "@langchain/core/prompts";
 
-const modal = new ChatOpenAI({
+const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   modelName: "gpt-5.4-mini",
 });
@@ -215,8 +219,59 @@ export async function generateLangChainCompletion(
 
   const chatHistory = await fetchMessagesFromDb(docId);
 
-  console.log("--- defining a prompt template ---")
-  const historyAwarePromot = ChatPromptTemplate.fromMessages([
-    chatHistory,
-  ])
+  console.log("--- defining a prompt template ---");
+
+  const historyAwarePrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `Given a chat history and the latest user question,
+rewrite the latest question into a standalone question.
+Do not answer the question.`,
+    ],
+    new MessagesPlaceholder("chat_history"),
+    ["human", "{input}"],
+  ]);
+
+  const historyAwareRetriverChain = await createHistoryAwareRetriever({
+    llm: model,
+    retriever: retriver,
+    rephrasePrompt: historyAwarePrompt,
+  });
+
+  console.log("--- defining a prompt template ---");
+
+  const qaPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `Answer the user's question using ONLY the following context.
+
+{context}`,
+    ],
+    new MessagesPlaceholder("chat_history"),
+    ["human", "{input}"],
+  ]);
+
+  console.log("--- defining a prompt template ---");
+  const historyAwareCombineDocsChain = await createStuffDocumentsChain({
+    llm: model,
+    prompt: qaPrompt,
+  });
+
+  const conversationalRetrivalChain = await createRetrievalChain({
+    retriever: historyAwareRetriverChain,
+    combineDocsChain: historyAwareCombineDocsChain,
+  });
+
+  console.log(chatHistory);
+
+  const reply = await conversationalRetrivalChain.invoke({
+    chat_history: chatHistory,
+    input: question,
+  });
+
+  console.log(reply.answer);
+
+  return reply.answer;
 }
+
+export { model };
