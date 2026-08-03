@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import useSubscription from "@/hooks/useSubscription";
+import getStripe from "@/lib/stripe-js";
+import { createCheckoutSession } from "@/actions/createCheckoutSession";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -40,8 +43,8 @@ const plans = [
       "Standard model",
       "7-day chat history",
     ],
-    cta: "Get started",
-    href: "/dashboard",
+    // cta: "Get started",
+    // href: "/dashboard",
     highlighted: false,
   },
   {
@@ -64,11 +67,41 @@ const plans = [
   },
 ];
 
-export function PricingPage() {
+export type UserDetails = {
+  email: string;
+  name: string;
+};
 
-  const {user} = useUser();
+export function PricingPage() {
+  const { user } = useUser();
   const router = useRouter();
-  
+  const { hasActiveMembership, isOverLimit, loading } = useSubscription();
+  const [isPending, startTransition] = useTransition();
+
+  const handleUpgrade = ()=>{
+    if(!user) return;
+
+     const userDetails : UserDetails = {
+      email : user.primaryEmailAddress?.toString()!,
+      name : user.fullName?.toString()!,
+     }
+
+     startTransition(async ()=>{
+       // load stripe checkout page
+       const stripe = await getStripe();
+
+       if(hasActiveMembership){
+
+       } 
+
+       const sessionUrl = await createCheckoutSession(userDetails);
+
+       if(sessionUrl){
+        router.push(sessionUrl);
+       }
+       
+     })
+  }
 
   return (
     <main
@@ -96,8 +129,8 @@ export function PricingPage() {
             Two plans. No fine print.
           </h1>
           <p className="mx-auto mt-6 max-w-md text-center text-base leading-relaxed text-[#4A4D57] md:text-lg">
-            Start free with a couple of documents. Upgrade when you have more
-            to read than time to read it.
+            Start free with a couple of documents. Upgrade when you have more to
+            read than time to read it.
           </p>
 
           {/* plan cards */}
@@ -106,9 +139,7 @@ export function PricingPage() {
               <div
                 key={plan.name}
                 className={`relative flex flex-col rounded-xl border bg-[#F5F3EE] p-6 ${
-                  plan.highlighted
-                    ? "border-[#14161F]"
-                    : "border-[#E4E2DC]"
+                  plan.highlighted ? "border-[#14161F]" : "border-[#E4E2DC]"
                 }`}
               >
                 {plan.highlighted && (
@@ -156,17 +187,21 @@ export function PricingPage() {
                   ))}
                 </ul>
 
-                <Button
-                  className={`mt-8 h-11 rounded-md px-5 text-sm font-medium transition-all duration-300 ${
-                    plan.highlighted
-                      ? "bg-[#14161F] text-[#FAFAF7] hover:-translate-y-0.5 hover:bg-[#4F46E5]"
-                      : "border border-[#E4E2DC] bg-transparent text-[#14161F] hover:bg-white"
-                  }`}
-                >
-                  <Link href={plan.href} className="flex items-center gap-2">
-                    {plan.cta} <MoveRight size={16} />
-                  </Link>
-                </Button>
+                {/* cta */}
+                {plan.cta && plan.href && (
+                  <Button
+                    className={`mt-8 h-11 rounded-md px-5 text-sm font-medium transition-all duration-300 ${
+                      plan.highlighted
+                        ? "bg-[#14161F] text-[#FAFAF7] hover:-translate-y-0.5 hover:bg-[#4F46E5]"
+                        : "border border-[#E4E2DC] bg-transparent text-[#14161F] hover:bg-white"
+                    }`}
+                    disabled={loading || isPending}
+                    onClick={()=>{handleUpgrade()}}
+                  >
+                      {isPending || loading ? "Loading..." : hasActiveMembership ? "Manage Plan" : "Upgrade to Pro"} <MoveRight size={16} />
+                    
+                  </Button>
+                )}
               </div>
             ))}
           </div>
