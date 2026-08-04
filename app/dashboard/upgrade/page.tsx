@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import useSubscription from "@/hooks/useSubscription";
 import getStripe from "@/lib/stripe-js";
 import { createCheckoutSession } from "@/actions/createCheckoutSession";
+import { createStripePortal } from "@/actions/createStripePortal";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -91,8 +92,12 @@ export function PricingPage() {
        const stripe = await getStripe();
 
        if(hasActiveMembership){
-
-       } 
+          const stripePortalUrl = await createStripePortal();
+          if(stripePortalUrl){
+            router.push(stripePortalUrl);
+            return;
+          }
+       }
 
        const sessionUrl = await createCheckoutSession(userDetails);
 
