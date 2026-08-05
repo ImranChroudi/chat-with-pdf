@@ -1,4 +1,5 @@
 import { adminDb } from "@/firebaseAdmin";
+import { FREE_LIMIT } from "@/hooks/useSubscription";
 import { generateLangChainCompletion } from "@/lib/langChain";
 import { auth } from "@clerk/nextjs/server";
 
@@ -17,6 +18,20 @@ export async function askQuestion(id : string, question: string) {
 
     const chatSnapshot = await chatRef.get();
     const userMessages = chatSnapshot.docs.filter((doc)=> doc.data().role === "human");
+
+    const userRef = await adminDb
+    .collection("users")
+    .doc(userId)
+    .get();
+
+    if(!userRef.data()?.hasActiveMembership){
+        if(userMessages.length >= FREE_LIMIT){
+            return {
+                success : false,
+                message : `You have reached the free limit of ${FREE_LIMIT} messages. Please upgrade to a paid plan to continue using our service.`
+            }
+        }
+    }
 
     const userMessage = {
         role: "human",

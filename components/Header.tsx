@@ -1,4 +1,6 @@
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { ArrowUpRight } from "lucide-react";
+import UpgradeButton from "./UpgradeButton";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { FilePlus } from "lucide-react";
@@ -50,6 +52,7 @@ function Header() {
             </Link>
           </Button>
 
+          <UpgradeButton />
           <UserButton
             appearance={{
               elements: {
