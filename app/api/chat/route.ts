@@ -16,12 +16,13 @@ export async function POST(req : any) {
   const { id , question } = await req.json();
     console.log("message" , question , id);
 
+
+
+
   const { success , message} = await askQuestion(id , question);
 
+  
 
-  console.log("message" , message);
-  return {
-    success,
-    message
-  }
+
+  return new Response(JSON.stringify({ success , message }));
 }

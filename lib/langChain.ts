@@ -15,7 +15,7 @@ import { MessagesPlaceholder } from "@langchain/core/prompts";
 
 const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  modelName: "gpt-5.4-mini",
+  modelName: "gpt-4.1-mini",
 });
 
 export const indexName = "newindex";
@@ -192,12 +192,19 @@ export async function fetchMessagesFromDb(docId: string) {
     .limit(LIMIT)
     .get();
 
-  const chatHistory = refChatHistory.docs.map((doc) => {
+    console.log("refChatHistory", refChatHistory);
+
+  if (refChatHistory.empty) {
+    return [];
+  }
+
+  const chatHistory = refChatHistory.docs
+  .filter((doc) => typeof doc.data().content === "string" && doc.data().content.length > 0)
+  .map((doc) => {
     return doc.data().role === "human"
       ? new HumanMessage(doc.data().content)
       : new AIMessage(doc.data().content);
   });
-
   return chatHistory;
 }
 
@@ -263,15 +270,27 @@ Do not answer the question.`,
   });
 
   console.log(chatHistory);
-
-  const reply = await conversationalRetrivalChain.invoke({
-    chat_history: chatHistory,
-    input: question,
+  console.log({
+    question,
+    chatHistory,
+    chatHistoryLength: chatHistory.length,
   });
 
-  console.log(reply.answer);
+  const rephrased = await historyAwareRetriverChain.invoke({
+  chat_history: chatHistory,
+  input: question,
+});
+console.log("rephrased/retrieved:", rephrased);
 
-  return reply.answer;
+const testAnswer = await historyAwareCombineDocsChain.invoke({
+  input: question,
+  chat_history: chatHistory,
+  context: rephrased, // the docs array you just logged
+});
+ 
+console.log("testAnswer", testAnswer);
+
+   return testAnswer;
 }
 
 export { model };

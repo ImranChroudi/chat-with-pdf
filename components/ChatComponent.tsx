@@ -1,11 +1,19 @@
 "use client";
-import { startTransition, useEffect, useRef, useState, useTransition } from "react";
+import {
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { BotIcon, Loader2Icon, SendIcon, UserIcon } from "lucide-react";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { useUser } from "@clerk/nextjs";
 import { collection, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase";
 import { askQuestion } from "@/actions/askQuestion";
+import { toast } from "sonner";
+import axios from "axios";
 
 // ---- Types -------------------------------------------------------------
 
@@ -18,7 +26,7 @@ interface ChatMessagePart {
 
 interface ChatMessage {
   role: ChatRole;
-  message : string;
+  message: string;
   createdAt: Date;
   id?: string;
 }
@@ -29,8 +37,7 @@ function ChatComponent({ id }: { id: string }) {
   const { user } = useUser();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
-  const [isPending , setTransition] = useTransition();
-
+  const [isPending, setTransition] = useTransition();
 
   const [snapshot, setSnapshot, error] = useCollection(
     user &&
@@ -43,38 +50,39 @@ function ChatComponent({ id }: { id: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    if(!snapshot) return;
-   
+    if (!snapshot) return;
+
     const lastMessage = messages.pop();
-    if(lastMessage && lastMessage.role === "ai" && lastMessage.message === "Thinking..."){
-      return 
+    if (
+      lastMessage &&
+      lastMessage.role === "ai" &&
+      lastMessage.message === "Thinking..."
+    ) {
+      return;
     }
 
-    const newMessages = snapshot.docs.map((doc)=>{
-      const {role , message , createdAt} = doc.data();
+    const newMessages = snapshot.docs.map((doc) => {
+      const { role, message, createdAt } = doc.data();
 
       return {
-        id : doc.id ,
-        role ,
-        message ,
-        createdAt: createdAt.toDate()
-      }
-    })
+        id: doc.id,
+        role,
+        message,
+        createdAt: createdAt.toDate(),
+      };
+    });
 
     setMessages(newMessages);
-
   }, [snapshot]);
-
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(()=>{
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  } , [messages])
+  }, [messages]);
   // TODO: you fill in the actual sending/fetching logic
-
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,44 +105,43 @@ function ChatComponent({ id }: { id: string }) {
     ]);
 
     startTransition(async () => {
+      const res = await axios.post(`/api/chat`, {
+        id,
+        question: q,
+      })
 
-      const {success , message} = await fetch(`/api/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id, question: q }),
-      }).then((res) => res.json())
-      .then((res) => {
-        console.log(res);
-        return res;
-      }).catch((err) => {
-        console.error(err);
-        return { success: false, message: "Something went wrong" };
-      });
+      const { success, message } = res.data;
+       
+      console.log("success", success, message);
 
-      console.log("success" , success , message);
+      if (!success) {
 
+        toast("Something went wrong", {
+          description: message ?? "Please try again later.",
+          variant: "error",
+          action: {
+            label: "Undo",
+            onClick: () => console.log("Undo"),
+          },
+        })
 
-      
-
-      if(!success){
-        setMessages((prev) => 
-             prev.slice(0 , prev.length -1).concat([
-              {
-                role : "ai",
-                message : message ?? "Something went wrong",
-                createdAt : new Date()
-              }])
+        setMessages((prev) =>
+          prev.slice(0, prev.length - 1).concat([
+            {
+              role: "ai",
+              message: message ?? "Something went wrong",
+              createdAt: new Date(),
+            },
+          ]),
         );
         return;
       }
 
       setMessages((prev) => {
-        return prev.slice(0 , prev.length -1).concat({
-            role : "ai",
-            message : message ?? "Something went wrong",
-            createdAt : new Date()
+        return prev.slice(0, prev.length - 1).concat({
+          role: "ai",
+          message: message ?? "Something went wrong",
+          createdAt: new Date(),
         });
       });
     });
@@ -154,7 +161,7 @@ function ChatComponent({ id }: { id: string }) {
           </div>
         )}
 
-        {messages.map((message , index) => {
+        {messages.map((message, index) => {
           const isUser = message.role === "human";
           return (
             <div
@@ -206,13 +213,11 @@ function ChatComponent({ id }: { id: string }) {
           disabled={!input?.trim()}
           className="h-10 w-10 shrink-0 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full disabled:opacity-40 disabled:hover:bg-indigo-600 transition shadow-sm"
         >
-          {
-            isPending ? (
-              <Loader2Icon className="h-4 w-4 animate-spin" />
-            ) : (
-              <SendIcon className="h-4 w-4" />
-            )
-          }
+          {isPending ? (
+            <Loader2Icon className="h-4 w-4 animate-spin" />
+          ) : (
+            <SendIcon className="h-4 w-4" />
+          )}
         </button>
       </form>
     </div>
