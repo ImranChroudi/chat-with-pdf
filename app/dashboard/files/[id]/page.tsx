@@ -26,12 +26,12 @@ async function ChatFilePage({
   if (!downloadUrl) throw new Error("File URL not found");
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-6 h-screen overflow-hidden">
-      <div className="col-span-5 lg:col-span-3 overflow-auto bg-gray-100">
+    <div className="grid h-screen grid-cols-1 overflow-hidden lg:grid-cols-6">
+      <div className="col-span-5 overflow-auto bg-[#F5F3EE] lg:col-span-3">
         <PdfView url={downloadUrl} />
       </div>
 
-      <div className="col-span-5 lg:col-span-3 border-t lg:border-t-0 lg:border-l overflow-hidden flex flex-col">
+      <div className="col-span-5 flex flex-col overflow-hidden border-t border-[#E4E2DC] lg:col-span-3 lg:border-l lg:border-t-0">
         <ChatComponent id={id} />
       </div>
     </div>

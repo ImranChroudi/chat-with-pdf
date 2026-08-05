@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, MoveRight } from "lucide-react";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -11,25 +10,6 @@ import useSubscription from "@/hooks/useSubscription";
 import getStripe from "@/lib/stripe-js";
 import { createCheckoutSession } from "@/actions/createCheckoutSession";
 import { createStripePortal } from "@/actions/createStripePortal";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-});
-
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-body",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-});
 
 const plans = [
   {
@@ -109,9 +89,7 @@ export function PricingPage() {
   }
 
   return (
-    <main
-      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} min-h-screen bg-[#FAFAF7] [font-family:var(--font-body)]`}
-    >
+    <main className="min-h-screen bg-[#FAFAF7] [font-family:var(--font-body)]">
       <div className="relative mx-auto max-w-6xl">
         {/* frame lines, matching hero */}
         <div className="absolute inset-y-0 left-0 hidden h-full w-px bg-[#E4E2DC] md:block" />

@@ -74,6 +74,7 @@ export type Status = StatusText[keyof StatusText];
       await setDoc(doc(db, "users", user?.id, "files", fileIdUploadTo), {
         name: file.name,
         url: documentUrl,
+        publicId: res.data.public_id,
         type: file.type,
         size: file.size,
         createdAt: new Date(),

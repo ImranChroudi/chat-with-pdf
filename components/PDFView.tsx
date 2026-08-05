@@ -55,25 +55,25 @@ function PdfView({ url }: { url: string }) {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 border-b bg-white px-3 py-2 sticky top-0 z-10">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-[#E4E2DC] bg-[#FAFAF7] px-3 py-2">
         <div className="flex items-center gap-1">
           <button
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
-            className="p-2 rounded hover:bg-gray-100 disabled:opacity-40"
+            className="rounded-md p-2 text-[#4A4D57] transition-colors hover:bg-[#F5F3EE] hover:text-[#14161F] disabled:opacity-40"
             aria-label="Previous page"
           >
             <ChevronLeftIcon className="h-4 w-4" />
           </button>
 
-          <span className="text-sm text-gray-600 min-w-[70px] text-center">
+          <span className="min-w-[70px] text-center text-sm tabular-nums text-[#4A4D57]">
             {numPages ? `${pageNumber} / ${numPages}` : "—"}
           </span>
 
           <button
             onClick={goToNextPage}
             disabled={pageNumber >= numPages}
-            className="p-2 rounded hover:bg-gray-100 disabled:opacity-40"
+            className="rounded-md p-2 text-[#4A4D57] transition-colors hover:bg-[#F5F3EE] hover:text-[#14161F] disabled:opacity-40"
             aria-label="Next page"
           >
             <ChevronRightIcon className="h-4 w-4" />
@@ -83,43 +83,38 @@ function PdfView({ url }: { url: string }) {
         <div className="flex items-center gap-1">
           <button
             onClick={zoomOut}
-            className="p-2 rounded hover:bg-gray-100"
+            className="rounded-md p-2 text-[#4A4D57] transition-colors hover:bg-[#F5F3EE] hover:text-[#14161F]"
             aria-label="Zoom out"
           >
             <ZoomOutIcon className="h-4 w-4" />
           </button>
 
-          <span className="text-sm text-gray-600 min-w-[45px] text-center">
+          <span className="min-w-[45px] text-center text-sm tabular-nums text-[#4A4D57]">
             {Math.round(scale * 100)}%
           </span>
 
           <button
             onClick={zoomIn}
-            className="p-2 rounded hover:bg-gray-100"
+            className="rounded-md p-2 text-[#4A4D57] transition-colors hover:bg-[#F5F3EE] hover:text-[#14161F]"
             aria-label="Zoom in"
           >
             <ZoomInIcon className="h-4 w-4" />
           </button>
 
-          <button
-            
-            className="p-2 rounded hover:bg-gray-100"
-            aria-label="Zoom in"
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="rounded-md p-2 text-[#4A4D57] transition-colors hover:bg-[#F5F3EE] hover:text-[#14161F]"
+            aria-label="Download PDF"
           >
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-            >
-              <Download className="h-4 w-4" />
-            </a>
-          </button>
+            <Download className="h-4 w-4" />
+          </a>
 
-         
           <button
             onClick={rotate}
-            className="p-2 rounded hover:bg-gray-100"
+            className="rounded-md p-2 text-[#4A4D57] transition-colors hover:bg-[#F5F3EE] hover:text-[#14161F]"
             aria-label="Rotate"
           >
             <RotateCwIcon className="h-4 w-4" />
@@ -128,19 +123,19 @@ function PdfView({ url }: { url: string }) {
       </div>
 
       {/* Document */}
-      <div className="flex-1 overflow-auto bg-gray-200 flex justify-center py-6">
+      <div className="flex flex-1 justify-center overflow-auto bg-[#F5F3EE] py-6">
         <Document
           file={url}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={(err) => setError(err.message)}
           
           loading={
-            <div className="flex items-center justify-center h-40">
-              <Loader2Icon className="h-6 w-6 animate-spin text-gray-500" />
+            <div className="flex h-40 items-center justify-center">
+              <Loader2Icon className="h-6 w-6 animate-spin text-[#4F46E5]" />
             </div>
           }
           error={
-            <div className="text-red-500 text-sm p-4">
+            <div className="p-4 text-sm text-[#DC2626]">
               Failed to load PDF{error ? `: ${error}` : ""}.
             </div>
           }

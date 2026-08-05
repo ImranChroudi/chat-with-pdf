@@ -11,35 +11,9 @@ import {
   Smartphone,
   MoveRight,
 } from "lucide-react";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-
-// ── Fonts ──────────────────────────────────────────────────────────────
-// Fraunces (serif, editorial, a little idiosyncratic) carries the voice of
-// the page — it reads like something set for print, which suits a product
-// about reading documents. IBM Plex Sans/Mono were designed for dense
-// technical and print material, so they pair naturally and keep body copy
-// and data-like labels (file names, page refs, nav) legible and unfussy.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-});
-
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-body",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-});
 
 // ── Palette (used inline via Tailwind arbitrary values) ──────────────────
 // paper       #FAFAF7   page background
@@ -103,9 +77,7 @@ function Hero() {
   }, [wordIndex, words]);
 
   return (
-    <main
-      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} bg-[#FAFAF7] [font-family:var(--font-body)]`}
-    >
+    <main className="bg-[#FAFAF7] [font-family:var(--font-body)]">
       <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center">
         <Navbar />
 

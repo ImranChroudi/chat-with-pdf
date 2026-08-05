@@ -79,9 +79,6 @@ function ChatComponent({ id }: { id: string }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
   // TODO: you fill in the actual sending/fetching logic
 
   function handleSubmit(e: React.FormEvent) {
@@ -117,13 +114,14 @@ function ChatComponent({ id }: { id: string }) {
       if (!success) {
 
         toast("Something went wrong", {
+            
           description: message ?? "Please try again later.",
-          variant: "error",
+          duration: 5000,
           action: {
             label: "Undo",
             onClick: () => console.log("Undo"),
           },
-        })
+        });
 
         setMessages((prev) =>
           prev.slice(0, prev.length - 1).concat([
@@ -148,14 +146,14 @@ function ChatComponent({ id }: { id: string }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-white">
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+    <div className="flex h-full flex-col bg-[#FAFAF7]">
+      <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center text-center mt-16 gap-3">
-            <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-              <BotIcon className="h-6 w-6 text-indigo-600" />
+          <div className="mt-16 flex flex-col items-center justify-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E4E2DC] bg-[#F5F3EE]">
+              <BotIcon className="h-6 w-6 text-[#4F46E5]" />
             </div>
-            <p className="text-gray-400 text-sm max-w-xs">
+            <p className="max-w-xs text-sm text-[#8A8D97]">
               Ask a question about this document to get started.
             </p>
           </div>
@@ -171,24 +169,24 @@ function ChatComponent({ id }: { id: string }) {
               }`}
             >
               {!isUser && (
-                <div className="h-7 w-7 shrink-0 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <BotIcon className="h-4 w-4 text-white" />
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#14161F]">
+                  <BotIcon className="h-4 w-4 text-[#FFE066]" />
                 </div>
               )}
 
               <div
-                className={`group max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
+                className={`group max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
                   isUser
-                    ? "bg-indigo-600 text-white rounded-br-sm"
-                    : "bg-gray-100 text-gray-900 rounded-bl-sm"
+                    ? "rounded-br-sm bg-[#14161F] text-[#FAFAF7]"
+                    : "rounded-bl-sm border border-[#E4E2DC] bg-white text-[#14161F]"
                 }`}
               >
                 {message.message}
               </div>
 
               {isUser && (
-                <div className="h-7 w-7 shrink-0 rounded-full bg-gray-300 flex items-center justify-center">
-                  <UserIcon className="h-4 w-4 text-gray-700" />
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E4E2DC] bg-[#F5F3EE]">
+                  <UserIcon className="h-4 w-4 text-[#4A4D57]" />
                 </div>
               )}
             </div>
@@ -200,18 +198,18 @@ function ChatComponent({ id }: { id: string }) {
 
       <form
         onSubmit={handleSubmit}
-        className="border-t bg-white/80 backdrop-blur-sm p-3 sm:p-4 flex gap-2 items-center"
+        className="flex items-center gap-2 border-t border-[#E4E2DC] bg-[#FAFAF7]/80 p-3 backdrop-blur-sm sm:p-4"
       >
         <input
           value={input ?? ""}
           onChange={(e) => setInput(e.currentTarget.value)}
           placeholder="Ask something about this document..."
-          className="flex-1 border border-gray-200 bg-gray-50 rounded-full px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+          className="flex-1 rounded-full border border-[#E4E2DC] bg-[#F5F3EE] px-4 py-2.5 text-sm placeholder:text-[#8A8D97] transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4F46E5]"
         />
         <button
           type="submit"
           disabled={!input?.trim()}
-          className="h-10 w-10 shrink-0 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full disabled:opacity-40 disabled:hover:bg-indigo-600 transition shadow-sm"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#14161F] text-[#FAFAF7] shadow-sm transition hover:bg-[#4F46E5] disabled:opacity-40 disabled:hover:bg-[#14161F]"
         >
           {isPending ? (
             <Loader2Icon className="h-4 w-4 animate-spin" />
