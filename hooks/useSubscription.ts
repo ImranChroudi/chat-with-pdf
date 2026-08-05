@@ -6,12 +6,14 @@ import { collection, doc, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useCollection, useDocument } from "react-firebase-hooks/firestore";
 
-export const PRO_LIMIT = 20;
-export const FREE_LIMIT = 5;
+const PRO_FILE_LIMIT = 10;
+const FREE_FILE_LIMIT = 2;
+
+
 
 function useSubscription() {
   const [hasActiveMembership, setHasActiveMembership] = useState(null);
-  const [isOverLimit, setIsOverLimit] = useState(false);
+  const [isOverFileLimit, setIsOverFileLimit] = useState(false);
 
   const { user } = useUser();
   const [snapshot, loading, error] = useDocument(
@@ -39,16 +41,16 @@ function useSubscription() {
     if (!filesSnapshot || hasActiveMembership) return;
 
     const files = filesSnapshot?.docs;
-    const usersLimit = hasActiveMembership ? PRO_LIMIT : FREE_LIMIT;
+    const usersLimit = hasActiveMembership ? PRO_FILE_LIMIT : FREE_FILE_LIMIT;
 
     console.log("files", files, "usersLimit", usersLimit);
 
-    setIsOverLimit(files && files.length > usersLimit);
-  }, [filesSnapshot, hasActiveMembership, PRO_LIMIT, FREE_LIMIT]);
+    setIsOverFileLimit(files && files.length > usersLimit);
+  }, [filesSnapshot, hasActiveMembership, PRO_FILE_LIMIT, FREE_FILE_LIMIT]);
 
   return {
     hasActiveMembership,
-    isOverLimit,
+    isOverFileLimit,
     filesSnapshot,
     filesLoading,
     loading
